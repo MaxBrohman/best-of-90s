@@ -1,50 +1,32 @@
 export const data = [
     {
-        img: './images/Отец_молодой_портрет.jpg',
-        size: {
-            width: 6.59,
-            height: 5.84
-        },
-        scale: 1
+        img: './images/81zlzypO3dL._SL1500_.jpg'
     },
     {
-        img: './images/Курсант_1960.png',
-        size: {
-            width: 2.64,
-            height: 3.44
-        },
-        scale: 1.5
+        img: './images/71N24co9ugL._SL1425_.jpg'
     },
     {
-        img: './images/офицер_004.jpg',
-        size: {
-            width: 9.49,
-            height: 11.43
-        },
-        scale: 0.6
+        img: './images/nirvana-in-utero.jpg'
     },
     {
-        img: './images/офицер.jpg',
-        size: {
-            width: 8.2,
-            height: 10
-        },
-        scale: 0.7
+        img: './images/513D1NEWPXL.jpg'
     },
     {
-        img: './images/офицер_005.jpg',
-        size: {
-            width: 9.01,
-            height: 12.46
-        },
-        scale: 0.6 
+        img: './images/nine-inch-nails-broken-lp-7-vinyl-1.jpg'
     },
     {
-        img: './images/подполковник (1).png',
-        size: {
-            width: 9.25,
-            height: 12.19
-        },
-        scale: 0.6  
+        img: './images/s-l1600.jpg'
+    },
+    {
+        img: './images/Nine_Inch_Nails_-_The_Fragile.png'
+    },
+    {
+        img: './images/aenima.jpg'
+    },
+    {
+        img: './images/Nine-Inch-Nails-Downward-Spiral.jpg'
+    },
+    {
+        img: './images/Dirt_(Alice_in_Chains_album_-_cover_art).jpg'
     }
 ];

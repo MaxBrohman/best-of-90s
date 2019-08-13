@@ -12,7 +12,7 @@ export default class Ar {
 	private videoParams: IVideoParams;
 	private cameraParams: IARCameraParams;
 	private readonly cameraUrl: string = './camera_para.dat';
-	private readonly patternUrl: string = './pattern-last.patt';
+	private readonly patternUrl: string = './pattern-marker.patt';
     constructor(){
 		this.video = document.createElement('video');
 		this.cameraParams = new ARCameraParam();
