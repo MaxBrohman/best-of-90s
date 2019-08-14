@@ -33,7 +33,7 @@ export default class Ar {
 	}
 	
 	// initialiizes video stream and calibrates camera
-	public initCamera(): Promise<HTMLVideoElement>{
+	public initCamera(): Promise<HTMLVideoElement> {
 		return new Promise((resolve) => {
 			this.cameraParams.onload = () => {
 				this.controller = new ARController(this.width, this.height, this.cameraParams);
@@ -50,7 +50,7 @@ export default class Ar {
 	}
 
 	// basically decorator around setMarker method
-	public initMarker(root: THREE.Group): Promise<THREE.Group>{
+	public initMarker(root: THREE.Group): Promise<THREE.Group> {
 		return new Promise( async (resolve) => {
 			const newRoot = await this.setMarker(this.patternUrl, root);
 			resolve(newRoot);
@@ -58,19 +58,19 @@ export default class Ar {
 	}
 
 	// artoolkit frame processing
-	public process(): void{
+	public process(): void {
 		return this.controller!.process(this.video);
 	}
 
 	// updates three js scene on resize
-	public onWindowResize(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer): void{
+	public onWindowResize(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer): void {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 		renderer.setSize(window.innerWidth, window.innerHeight);
 	}
 	
 	// updates page on resize
-	public onVideoResize(): void{
+	public onVideoResize(): void {
 		const screenWidth = window.innerWidth;
 		const screenHeight = window.innerHeight;
 	
@@ -106,7 +106,7 @@ export default class Ar {
 	}
 
 	// loads marker pattern and creates scene root element
-	private setMarker(url: string, root: THREE.Group): Promise<THREE.Group>{
+	private setMarker(url: string, root: THREE.Group): Promise<THREE.Group> {
 		return new Promise((resolve) => {
 		  	(this.controller as IARController).loadMarker(url, (markerUid: any) => {
 				const markerRoot = this.createMarkerRoot(markerUid, root);
@@ -116,12 +116,12 @@ export default class Ar {
 	}
 
 	// gets stream from user camera
-    private getStream(): Promise<MediaStream>{
+    private getStream(): Promise<MediaStream> {
         return navigator.mediaDevices.getUserMedia(this.videoParams);
     }
 
 	// writes stream into video html element
-    private initVideoSource(): Promise<HTMLVideoElement | void>{
+    private initVideoSource(): Promise<HTMLVideoElement | void> {
 		return new Promise((resolve) => {
 			this.getStream()
             .then(stream => {
@@ -162,7 +162,7 @@ export default class Ar {
 	}
 
 	// sets necessary properties for scene root element
-	private createMarkerRoot(markerUid: number, root: THREE.Group): THREE.Group{
+	private createMarkerRoot(markerUid: number, root: THREE.Group): THREE.Group {
 		this.controller!.threePatternMarkers = {};
 		(root as any).markerTracker = this.controller!.trackPatternMarkerId(markerUid);
 		(root as any).markerMatrix = new Float64Array(12);

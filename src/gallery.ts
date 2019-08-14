@@ -2,11 +2,10 @@ import { Clock, Mesh } from 'three';
 import { PMOptions } from './typings/photo-mesh';
 import PhotoMesh from './photo-mesh';
 
-export default class PhotoGallery{
+export default class PhotoGallery {
     private data: PMOptions[] | undefined;
     public meshes: Mesh[] = [];
-    private meshCounter: number = 0;
-    constructor(){}
+    private usedMeshes: Mesh[] = [];
 
     // creates all meshes and puts them on meshes property array
     public async init(): Promise<any> {
@@ -21,9 +20,13 @@ export default class PhotoGallery{
 
     // adds mesh to scene, animates and translate mesh from meshes property array to usedMeshes property array
     public async render(): Promise<Mesh> {
-        const mesh = this.meshes[this.meshCounter];
-        this.meshCounter++;
-        return mesh;
+        if(this.meshes.length === 0){
+            this.meshes = [...this.usedMeshes];
+            this.usedMeshes = [];
+        }
+        const showedMesh = this.meshes.shift();
+        this.usedMeshes.push((showedMesh as Mesh));
+        return (showedMesh as Mesh);
     }
 
     public hide(mesh: Mesh): Promise<Mesh>{

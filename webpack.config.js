@@ -8,7 +8,7 @@ module.exports = {
             filename: '[name].bundle.js',
             path: path.resolve(__dirname, 'docs')
         },
-    mode: 'development',
+    mode: 'production',
     devtool: 'source-map',
     devServer: {
         contentBase: './docs'

@@ -1,4 +1,5 @@
 import Ar from './ar';
+import { IUpdatedMesh } from './typings/photo-mesh';
 
 export default class App {
     public gallery: any;
@@ -10,11 +11,13 @@ export default class App {
     public video: HTMLVideoElement | undefined;
     public canvas: HTMLCanvasElement | undefined;
     private wrapper: THREE.Group | undefined;
+    private matrixBuffer: number[][] = [];
     private threeModule: any;
     private actions: Array<() => void> = [];
     private isGalleryInitialized: boolean = false;
     constructor(){
         this.clickEventHandler = this.clickEventHandler.bind(this);
+        this.swipeEventHandler = this.swipeEventHandler.bind(this);
         this.update = this.update.bind(this);
     }
 
@@ -30,31 +33,12 @@ export default class App {
         window.addEventListener('resize', () => {
             this.onResize();
         });
-        const group = new this.threeModule.Group();
-        const root = await this.ar.initMarker(group);
-        root.add(this.wrapper!);
-        root.visible = false;
-        this.scene!.add(root);
-        this.ar.controller!.addEventListener('getMarker', async (evt) => {
-            const marker = evt.data.marker;
-            const markerRoot = this.ar.controller!.threePatternMarkers[marker.idPatt];
-            if(markerRoot){
-                if(!this.isGalleryInitialized) {
-                    this.isGalleryInitialized = true;
-                    const module = await import(/* webpackChunkName: "gallery" */'./gallery'); 
-                    this.gallery = new module.default();
-                    await this.gallery.init();
-                    window.addEventListener('click', this.clickEventHandler);
-                    this.renderMesh();
-                }
-                const newMat = new this.threeModule.Matrix4().fromArray(evt.data.matrixGL_RH);
-                markerRoot.matrix.copy(newMat);
-                markerRoot.visible = true;
-            } else {
-                root.visible = false;
-            }
-        });
-        this.actions.push(this.ar.process);
+
+        await this.setupMarkerDetection();
+
+        window.addEventListener('touchstart', (evt: TouchEvent) => {
+            
+          });
     }
 
     // updates app every frame
@@ -136,24 +120,16 @@ export default class App {
     }
 
     // click logic
-    public clickEventHandler(evt: MouseEvent): void{
+    private clickEventHandler(evt: MouseEvent): void{
         evt.preventDefault();
-        const mouse = new this.threeModule.Vector2(
-            (evt.clientX / window.innerWidth) * 2 - 1,
-            -(evt.clientY / window.innerHeight) * 2 + 1
-        );
         
-        this.raycaster!.setFromCamera(mouse, this.camera!);
-
-        // if mesh cicked, hides it
-        const intersects = this.raycaster!.intersectObjects(this.wrapper!.children);
-        if (intersects.length > 0) {
-            const clickedMesh = intersects[0].object;
+        const clickedMesh = this.getIntersectedMesh(evt.clientX, evt.clientY);
+        if (clickedMesh) {
             const maxScaleAfterAnimation = 0.999999;
             if(clickedMesh.scale.x < maxScaleAfterAnimation || clickedMesh.scale.y < maxScaleAfterAnimation){
                 return;
             }
-            this.hideMesh(intersects[0].object);
+            this.hideMesh(clickedMesh);
             return;
         }
 
@@ -161,5 +137,91 @@ export default class App {
         const distance = - this.camera!.position.z / this.raycaster!.ray.direction.z;
         const newPosition = this.camera!.position.clone().add(this.raycaster!.ray.direction.multiplyScalar(distance));
         this.renderMesh(newPosition);
+    }
+
+    private swipeEventHandler(evt: TouchEvent): void {
+        const startX = evt.touches[0].clientX;
+        const touchEndHandler = (evt2: TouchEvent) => {
+            const endX = evt2.changedTouches[0].clientX;
+            const diff = startX - endX;
+            if (Math.abs(diff) > 20) {
+                const swipedMesh = this.getIntersectedMesh(evt.touches[0].clientX, evt.touches[0].clientY);
+                if(swipedMesh){
+                    window.open((swipedMesh as IUpdatedMesh).link,'_blank');
+                }
+            }
+            window.removeEventListener('touchend', touchEndHandler);
+        };
+        window.addEventListener('touchend', touchEndHandler);
+    }
+
+    private getIntersectedMesh(x: number, y: number): THREE.Mesh | THREE.Object3D | void {
+
+        const mouse = new this.threeModule.Vector2(
+            (x / window.innerWidth) * 2 - 1,
+            -(y / window.innerHeight) * 2 + 1
+        );
+        
+        this.raycaster!.setFromCamera(mouse, this.camera!);
+
+        // if mesh cicked, hides it
+        const intersects = this.raycaster!.intersectObjects(this.wrapper!.children);
+        if (intersects.length > 0) {
+            return intersects[0].object;
+        }
+    }
+
+    // adds msrker found event listener and adds root to scene
+    private async setupMarkerDetection(): Promise<void> {
+        const group = new this.threeModule.Group();
+        const root = await this.ar.initMarker(group);
+        root.add(this.wrapper!);
+        root.visible = false;
+        this.scene!.add(root);
+        this.ar.controller!.addEventListener('getMarker', async (evt) => {
+            const marker = evt.data.marker;
+            const markerRoot = this.ar.controller!.threePatternMarkers[marker.idPatt];
+            if(markerRoot){
+                if(!this.isGalleryInitialized) {
+                    this.isGalleryInitialized = true;
+                    const module = await import(/* webpackChunkName: "gallery" */'./gallery'); 
+                    this.gallery = new module.default();
+                    await this.gallery.init();
+                    window.addEventListener('click', this.clickEventHandler);
+                    window.addEventListener('touchstart', this.swipeEventHandler);
+                    this.renderMesh();
+                }
+                const newMat = this.interpolateMatrix(evt.data.matrixGL_RH);
+                markerRoot.matrix.copy(newMat);
+                markerRoot.visible = true;
+            } else {
+                root.visible = false;
+            }
+        });
+        this.actions.push(this.ar.process);
+    }
+
+    // interpolation for marker matrices to decrease flickering
+    private interpolateMatrix(detectedPos: number[]): THREE.Matrix4 {
+        const newPos: number[] = [];
+        let newMat;
+        this.matrixBuffer.push(detectedPos);
+        if(this.matrixBuffer.length < 2){
+          newMat = new this.threeModule.Matrix4().fromArray(detectedPos);
+        } else {
+          if(this.matrixBuffer.length >= 5) {
+            this.matrixBuffer.shift();
+          }
+          const bufferLength = this.matrixBuffer.length;
+          for(let i = 0, length = this.matrixBuffer[i].length; i < length; i++) {
+            newPos[i] = 0;
+            for(let j = 0; j < bufferLength; j++) {
+              newPos[i] += this.matrixBuffer[j][i];
+            }
+            newPos[i] = newPos[i] / bufferLength;
+          }
+          newMat = new this.threeModule.Matrix4().fromArray(newPos);
+        }
+        return newMat;
     }
 }
