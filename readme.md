@@ -1,7 +1,7 @@
 ## Best of 90s AR Gallery
 In this ar - three.js gallery you can see covers of best in my opinion 90s albums.
 To do that follow simple steps below:
-1. Open this link on your smartphone. To get the link you can also scan this qr code:
+1. Open this link: https://maxbrohman.github.io/best-of-90s/ on your smartphone. To get the link you can also scan this qr code:
 
  <img src="./qr-code.png" alt="qr-code" width="150px">
 
