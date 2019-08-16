@@ -24,7 +24,7 @@ export default class App {
     public async init(): Promise<any> {
         this.video = await this.initAr();
         this.canvas = await this.initThree();
-        if(/^(iPhone|iPad|iPod)/.test(navigator.platform)){
+        if(this.isIphone()){
             this.canvas.style.cursor = 'pointer';
         }
         this.camera!.projectionMatrix.fromArray((this.ar.controller!.getCameraMatrix() as number[]));
@@ -91,19 +91,12 @@ export default class App {
 
     // renders mesh on page
     private async renderMesh(position?: THREE.Vector3): Promise<void>{
-        let mesh;
-        try{
-            mesh = await this.gallery.render();
-        } catch(err){
-            console.warn('it seems like we are out of photos!', err);
-        };
-        if(mesh){
-            if(position){
-                mesh.position.copy(position);
-            }
-            this.wrapper!.add(mesh);
-            this.gallery.animateScale(mesh);
+        const mesh = await this.gallery.render();
+        if(position){
+            mesh.position.copy(position);
         }
+        this.wrapper!.add(mesh);
+        this.gallery.animateScale(mesh);
     }
 
      // animates and removes mesh from scene
@@ -223,5 +216,9 @@ export default class App {
           newMat = new this.threeModule.Matrix4().fromArray(newPos);
         }
         return newMat;
+    }
+
+    private isIphone(): boolean {
+        return /^(iPhone|iPad|iPod)/.test(navigator.platform);
     }
 }

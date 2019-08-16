@@ -1,4 +1,4 @@
-import { IVideoParams, IARController, IARCameraParams } from './typings/controller';
+import { IVideoParams, IARController, IARCameraParams, IUpdatedRoot } from './typings/ar';
 
 // new version of ARtoolkit doesnt exist as npm package fo now 
 declare const ARController: IARController;
@@ -162,10 +162,10 @@ export default class Ar {
 	}
 
 	// sets necessary properties for scene root element
-	private createMarkerRoot(markerUid: number, root: THREE.Group): THREE.Group {
+	private createMarkerRoot(markerUid: number, root: IUpdatedRoot): IUpdatedRoot {
 		this.controller!.threePatternMarkers = {};
-		(root as any).markerTracker = this.controller!.trackPatternMarkerId(markerUid);
-		(root as any).markerMatrix = new Float64Array(12);
+		root.markerTracker = this.controller!.trackPatternMarkerId(markerUid);
+		root.markerMatrix = new Float64Array(12);
 		root.matrixAutoUpdate = false;
 		this.controller!.threePatternMarkers[markerUid] = root;
 		return root;

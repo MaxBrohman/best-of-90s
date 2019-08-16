@@ -38,3 +38,8 @@ export interface IARCameraParams {
     load: (src: string) => void;
     onload: () => void;
 }
+
+export interface IUpdatedRoot extends THREE.Group {
+    markerTracker?: IUpdatedRoot;
+    markerMatrix?: Float64Array;
+}

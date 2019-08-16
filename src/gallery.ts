@@ -40,7 +40,6 @@ export default class PhotoGallery {
     // animate scale depending on current mesh scale
     public animateScale(mesh: Mesh): Promise<boolean>{
         return new Promise((resolve) => {
-
             let clock: Clock | null = new Clock();
             const duration = 0.8;
             const to = mesh.scale.x - 1;
