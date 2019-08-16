@@ -7,7 +7,7 @@ export default class PhotoGallery {
     public meshes: Mesh[] = [];
     private usedMeshes: Mesh[] = [];
 
-    // creates all meshes and puts them on meshes property array
+    // creates all meshes and puts them on meshes array
     public async init(): Promise<any> {
         const module = await import(/* webpackChunkName: "data" */'./data');
         this.data = module.data;
@@ -18,27 +18,33 @@ export default class PhotoGallery {
         });
     }
 
-    // adds mesh to scene, animates and translate mesh from meshes property array to usedMeshes property array
-    public async render(): Promise<Mesh> {
+    // adds mesh to scene, animates and translate mesh from meshes array to usedMeshes array
+    public render(wrapper: THREE.Group, position?: THREE.Vector3): void {
         if(this.meshes.length === 0){
             this.meshes = [...this.usedMeshes];
             this.usedMeshes = [];
         }
         const showedMesh = this.meshes.shift();
-        this.usedMeshes.push((showedMesh as Mesh));
-        return (showedMesh as Mesh);
+        this.usedMeshes.push(showedMesh!);
+        if(position){
+            showedMesh!.position.copy(position);
+        }
+        wrapper.add(showedMesh!);
+        this.animateScale(showedMesh!);
     }
 
-    public hide(mesh: Mesh): Promise<Mesh>{
+    // removes mesh from scene and animates it
+    public hide(mesh: Mesh, wrapper: THREE.Group): Promise<void>{
         return new Promise((resolve) => {
             this.animateScale(mesh).then(() => {
-                resolve(mesh);
+                wrapper.remove(mesh);
+                resolve();
             });
         });
     }
 
     // animate scale depending on current mesh scale
-    public animateScale(mesh: Mesh): Promise<boolean>{
+    private animateScale(mesh: Mesh): Promise<boolean>{
         return new Promise((resolve) => {
             let clock: Clock | null = new Clock();
             const duration = 0.8;

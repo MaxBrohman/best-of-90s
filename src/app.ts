@@ -1,5 +1,6 @@
 import Ar from './ar';
 import { IUpdatedMesh } from './typings/photo-mesh';
+import { makeInteractiveForIphone } from './utils';
 
 export default class App {
     public gallery: any;
@@ -21,12 +22,10 @@ export default class App {
         this.update = this.update.bind(this);
     }
 
-    public async init(): Promise<any> {
-        this.video = await this.initAr();
+    public async init(): Promise<void> {
+        this.video = await this.ar.initCamera();
         this.canvas = await this.initThree();
-        if(this.isIphone()){
-            this.canvas.style.cursor = 'pointer';
-        }
+        makeInteractiveForIphone(this.canvas);
         this.camera!.projectionMatrix.fromArray((this.ar.controller!.getCameraMatrix() as number[]));
         document.body.appendChild(this.canvas!);
         this.onResize();
@@ -35,10 +34,6 @@ export default class App {
         });
 
         await this.setupMarkerDetection();
-
-        window.addEventListener('touchstart', (evt: TouchEvent) => {
-            
-          });
     }
 
     // updates app every frame
@@ -81,39 +76,15 @@ export default class App {
         });
     }
 
-    // initializes ar class
-    private initAr(): Promise<HTMLVideoElement>{
-        return new Promise( async (resolve) => {
-            const video = await this.ar.initCamera();
-            resolve(video);
-        });
-    }
-
-    // renders mesh on page
-    private async renderMesh(position?: THREE.Vector3): Promise<void>{
-        const mesh = await this.gallery.render();
-        if(position){
-            mesh.position.copy(position);
-        }
-        this.wrapper!.add(mesh);
-        this.gallery.animateScale(mesh);
-    }
-
-     // animates and removes mesh from scene
-     private async hideMesh(mesh: THREE.Mesh | THREE.Object3D): Promise<void>{
-        const meshToHide = await this.gallery.hide(mesh);
-        this.wrapper!.remove(meshToHide);
-    }
-
     // dispathces all app actions for request animation frame
-    public act(): void{
+    public act(): void {
         this.actions.forEach(action => {
             action();
         });
     }
 
     // click logic
-    private clickEventHandler(evt: MouseEvent): void{
+    private clickEventHandler(evt: MouseEvent): void {
         evt.preventDefault();
         
         const clickedMesh = this.getIntersectedMesh(evt.clientX, evt.clientY);
@@ -122,16 +93,17 @@ export default class App {
             if(clickedMesh.scale.x < maxScaleAfterAnimation || clickedMesh.scale.y < maxScaleAfterAnimation){
                 return;
             }
-            this.hideMesh(clickedMesh);
+            this.gallery.hide(clickedMesh, this.wrapper);
             return;
         }
 
         // if empty space clicked, puts mesh on this.position
         const distance = - this.camera!.position.z / this.raycaster!.ray.direction.z;
         const newPosition = this.camera!.position.clone().add(this.raycaster!.ray.direction.multiplyScalar(distance));
-        this.renderMesh(newPosition);
+        this.gallery.render(this.wrapper, newPosition);
     }
 
+    // opens mesh link on swipe
     private swipeEventHandler(evt: TouchEvent): void {
         const startX = evt.touches[0].clientX;
         const touchEndHandler = (evt2: TouchEvent) => {
@@ -148,6 +120,7 @@ export default class App {
         window.addEventListener('touchend', touchEndHandler);
     }
 
+    // cheks if any mesh is touched or clicked and returns it
     private getIntersectedMesh(x: number, y: number): THREE.Mesh | THREE.Object3D | void {
 
         const mouse = new this.threeModule.Vector2(
@@ -167,7 +140,7 @@ export default class App {
     // adds msrker found event listener and adds root to scene
     private async setupMarkerDetection(): Promise<void> {
         const group = new this.threeModule.Group();
-        const root = await this.ar.initMarker(group);
+        const root = await this.ar.setMarker(group);
         root.add(this.wrapper!);
         root.visible = false;
         this.scene!.add(root);
@@ -182,7 +155,7 @@ export default class App {
                     await this.gallery.init();
                     window.addEventListener('click', this.clickEventHandler);
                     window.addEventListener('touchstart', this.swipeEventHandler);
-                    this.renderMesh();
+                    this.gallery.render(this.wrapper);
                 }
                 const newMat = this.interpolateMatrix(evt.data.matrixGL_RH);
                 markerRoot.matrix.copy(newMat);
@@ -200,25 +173,21 @@ export default class App {
         let newMat;
         this.matrixBuffer.push(detectedPos);
         if(this.matrixBuffer.length < 2){
-          newMat = new this.threeModule.Matrix4().fromArray(detectedPos);
+            newMat = new this.threeModule.Matrix4().fromArray(detectedPos);
         } else {
-          if(this.matrixBuffer.length >= 5) {
-            this.matrixBuffer.shift();
-          }
-          const bufferLength = this.matrixBuffer.length;
-          for(let i = 0, length = this.matrixBuffer[i].length; i < length; i++) {
-            newPos[i] = 0;
-            for(let j = 0; j < bufferLength; j++) {
-              newPos[i] += this.matrixBuffer[j][i];
+            if(this.matrixBuffer.length >= 5) {
+                this.matrixBuffer.shift();
             }
-            newPos[i] = newPos[i] / bufferLength;
-          }
-          newMat = new this.threeModule.Matrix4().fromArray(newPos);
+            const bufferLength = this.matrixBuffer.length;
+            for(let i = 0, length = this.matrixBuffer[i].length; i < length; i++) {
+                newPos[i] = 0;
+                for(let j = 0; j < bufferLength; j++) {
+                    newPos[i] += this.matrixBuffer[j][i];
+                }
+                newPos[i] = newPos[i] / bufferLength;
+            }
+            newMat = new this.threeModule.Matrix4().fromArray(newPos);
         }
         return newMat;
-    }
-
-    private isIphone(): boolean {
-        return /^(iPhone|iPad|iPod)/.test(navigator.platform);
     }
 }

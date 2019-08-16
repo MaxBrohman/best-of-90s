@@ -49,14 +49,6 @@ export default class Ar {
 		});
 	}
 
-	// basically decorator around setMarker method
-	public initMarker(root: THREE.Group): Promise<THREE.Group> {
-		return new Promise( async (resolve) => {
-			const newRoot = await this.setMarker(this.patternUrl, root);
-			resolve(newRoot);
-		});
-	}
-
 	// artoolkit frame processing
 	public process(): void {
 		return this.controller!.process(this.video);
@@ -106,9 +98,9 @@ export default class Ar {
 	}
 
 	// loads marker pattern and creates scene root element
-	private setMarker(url: string, root: THREE.Group): Promise<THREE.Group> {
+	public setMarker(root: THREE.Group): Promise<THREE.Group> {
 		return new Promise((resolve) => {
-		  	(this.controller as IARController).loadMarker(url, (markerUid: any) => {
+		  	(this.controller as IARController).loadMarker(this.patternUrl, (markerUid: any) => {
 				const markerRoot = this.createMarkerRoot(markerUid, root);
 				resolve(markerRoot);
 			});
