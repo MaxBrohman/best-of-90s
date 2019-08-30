@@ -29,7 +29,7 @@ export default class App {
         this.camera!.projectionMatrix.fromArray((this.ar.controller!.getCameraMatrix() as number[]));
         if(/^(iPhone|iPad|iPod)/.test(navigator.platform)){
             this.canvas!.style.cursor = 'pointer';
-          }
+        }
         document.body.appendChild(this.canvas!);
         this.onResize();
         window.addEventListener('resize', () => {
