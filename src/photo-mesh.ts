@@ -1,9 +1,11 @@
 import {
+    LinearMipMapLinearFilter,
     Mesh,
     MeshBasicMaterial,
     Texture,
     TextureLoader,
-    PlaneGeometry
+    PlaneGeometry,
+    WebGLRenderer
 } from 'three';
 import { PMOptions, IUpdatedMesh } from './typings/photo-mesh';
 
@@ -11,14 +13,21 @@ import { PMOptions, IUpdatedMesh } from './typings/photo-mesh';
 export default class PhotoMesh{
     private texture: Texture;
     private link: string;
+    private renderer: WebGLRenderer;
     private readonly DEF_WIDTH: number = 5;
     private readonly DEF_HEIGHT: number = 5;
-    constructor(options: PMOptions){
-        this.texture = new TextureLoader().load(options.img);
+    constructor(options: PMOptions, renderer: WebGLRenderer){
         this.link = options.link;
+        this.renderer = renderer;
+        this.texture = new TextureLoader().load(options.img);
     }
     // sets image as texture
     init(): IUpdatedMesh{
+        // setting best filter
+        this.texture.minFilter = LinearMipMapLinearFilter;
+        // computes and sets best possible anisotropy
+        const maxAnisotropy = this.renderer.getMaxAnisotropy();
+        this.texture.anisotropy = maxAnisotropy;
         const geometry = new PlaneGeometry(
             this.DEF_WIDTH,
             this.DEF_HEIGHT

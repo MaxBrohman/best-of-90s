@@ -64,6 +64,8 @@ export default class App {
             this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
             this.renderer!.setSize(window.innerWidth, window.innerHeight);
             this.renderer!.setClearAlpha(0.0);
+            // removes blur from textures
+            this.renderer!.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
 
             this.scene = new Scene();
             this.camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 20000);
@@ -151,7 +153,7 @@ export default class App {
                 if(!this.isGalleryInitialized) {
                     this.isGalleryInitialized = true;
                     const module = await import(/* webpackChunkName: "gallery" */'./gallery'); 
-                    this.gallery = new module.default();
+                    this.gallery = new module.default(this.renderer!);
                     await this.gallery.init();
                     window.addEventListener('click', this.clickEventHandler);
                     window.addEventListener('touchstart', this.swipeEventHandler);

@@ -1,4 +1,4 @@
-import { Clock, Mesh } from 'three';
+import { Clock, Mesh, WebGLRenderer } from 'three';
 import { PMOptions } from './typings/photo-mesh';
 import PhotoMesh from './photo-mesh';
 
@@ -6,13 +6,16 @@ export default class PhotoGallery {
     private data: PMOptions[] | undefined;
     public meshes: Mesh[] = [];
     private usedMeshes: Mesh[] = [];
-
+    public renderer: WebGLRenderer;
+    constructor(renderer: WebGLRenderer) {
+        this.renderer = renderer;
+    }
     // creates all meshes and puts them on meshes array
     public async init(): Promise<any> {
         const module = await import(/* webpackChunkName: "data" */'./data');
         this.data = module.data;
         this.data.forEach(img => {
-            const newMesh = new PhotoMesh(img).init();
+            const newMesh = new PhotoMesh(img, this.renderer).init();
             newMesh.scale.set(0.000001, 0.000001, 0.000001);
             this.meshes.push(newMesh);
         });
