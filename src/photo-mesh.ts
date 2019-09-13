@@ -26,7 +26,7 @@ export default class PhotoMesh{
         // setting best filter
         this.texture.minFilter = LinearMipMapLinearFilter;
         // computes and sets best possible anisotropy
-        const maxAnisotropy = this.renderer.getMaxAnisotropy();
+        const maxAnisotropy = this.renderer.capabilities.getMaxAnisotropy();
         this.texture.anisotropy = maxAnisotropy;
         const geometry = new PlaneGeometry(
             this.DEF_WIDTH,
