@@ -3,7 +3,7 @@ In this ar - three.js gallery you can see covers of best in my opinion 90s album
 To do that follow simple steps below:
 1. Open this link: https://maxbrokhman.github.io/best-of-90s/ on your smartphone. To get the link you can also scan this qr code:
 
- <img src="./qr-code.png" alt="qr-code" width="150px">
+ <svg src="./qrcode.svg" alt="qr-code" width="150px">
 
 2. Enable usage of camera, when your browser will request to do so.
 3. Point your phone camera to AR marker below:
